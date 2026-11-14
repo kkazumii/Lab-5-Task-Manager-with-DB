@@ -218,4 +218,33 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   initCharCounters();
  
+  /* ---------- 9. Mobile Slide-in Menu ---------- */
+  const menuToggle = $("#menu-toggle");
+  const menuOverlay = $("#sidebar-overlay");
+
+  function setMenu(open) {
+    document.body.classList.toggle("menu-open", open);
+    menuToggle.setAttribute("aria-expanded", open);
+    menuToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  }
+
+  /* FUNCTION 14 — toggleMenu()                     [click] */
+  function toggleMenu() {
+    setMenu(!document.body.classList.contains("menu-open"));
+  }
+  menuToggle.addEventListener("click", toggleMenu);
+
+  /* FUNCTION 15 — closeMenu()                      [click] */
+  function closeMenu() {
+    setMenu(false);
+  }
+  menuOverlay.addEventListener("click", closeMenu);
+
+  /* FUNCTION 16 — closeMenuOnEscape()              [keydown] */
+  function closeMenuOnEscape(event) {
+    if (event.key === "Escape") {
+      setMenu(false);
+    }
+  }
+  document.addEventListener("keydown", closeMenuOnEscape);
 });

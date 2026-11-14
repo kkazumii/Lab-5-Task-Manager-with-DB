@@ -939,3 +939,276 @@ select {
 .overdue-note:active {
   transform: translateY(1px);
 }
+
+/* ==========================================================================
+   12. RESPONSIVE (tablet + mobile + slide-in sidebar)
+   ========================================================================== */
+
+/* Hamburger button + dark overlay: hidden on desktop, used on phones */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.menu-toggle:hover {
+  background-color: #F1EDE9;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text-main);
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+
+/* ---------- Tablet: 1100px and under ---------- */
+/* Two columns: left sidebar | content. The Overview moves under the task list. */
+@media (max-width: 1100px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+
+  body {
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  }
+
+  .sidebar {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .main-content {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0;
+    padding: 32px 28px 40px;
+  }
+
+  .right-sidebar {
+    grid-column: 2;
+    grid-row: 2;
+    position: static;
+    height: auto;
+    overflow: visible;
+    border-left: 0;
+    border-top: 1px solid var(--border-color);
+    padding: 28px;
+  }
+}
+
+
+/* ---------- Phone: 768px and under ---------- */
+/* One column. The left sidebar slides in from the left when the hamburger is tapped. */
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body.menu-open {
+    overflow: hidden;           /* stops the page scrolling behind the open menu */
+  }
+
+  .main-content,
+  .right-sidebar {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  /* Sidebar becomes an off-screen drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 85vw);
+    height: 100%;
+    z-index: 50;
+    transform: translateX(-100%);
+    visibility: hidden;         /* keeps hidden links out of keyboard tab order */
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+  }
+
+  body.menu-open .sidebar {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.25s ease, visibility 0s;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Dark background behind the open sidebar. Tap it to close. */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(44, 40, 37, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  }
+
+  body.menu-open .sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s ease, visibility 0s;
+  }
+
+  /* Hamburger button sits at the top-left of the page and stays visible while scrolling */
+  .main-content > .menu-toggle {
+    display: flex;
+    width: 44px;
+    margin-inline: 0;
+    position: sticky;
+    top: 12px;
+    z-index: 30;
+    align-self: flex-start;
+  }
+
+  /* Main content */
+  .main-content {
+    min-height: 0;
+    padding: 20px 16px 32px;
+    gap: 20px;
+  }
+
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .search-bar {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  .filter-tab {
+    padding: 6px 12px;
+  }
+
+  /* 16px inputs stop iPhones from zooming in when a field is tapped */
+  .task-form input[type="text"],
+  .task-form input[type="date"],
+  .task-form select,
+  .search-bar input {
+    font-size: 16px;
+  }
+
+  /* Task cards wrap into two lines:
+     line 1 = checkbox + title/description
+     line 2 = status badge, due date, action buttons */
+  .task-item {
+    padding: 14px 16px;
+  }
+
+  .task-row {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+
+  .task-details {
+    flex: 1 1 calc(100% - 40px);
+  }
+
+  .status-badge {
+    margin-left: 32px;          /* lines up under the title */
+  }
+
+  .task-actions {
+    margin-left: auto;
+  }
+
+  /* Bigger tap targets */
+  .task-checkbox {
+    width: 22px;
+    height: 22px;
+  }
+
+  .btn-icon {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .btn-icon.star {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Overview panel sits under the task list */
+  .right-sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+    border-left: 0;
+    border-top: 1px solid var(--border-color);
+    padding: 24px 16px 32px;
+  }
+}
+
+
+/* ---------- Small phone: 480px and under ---------- */
+@media (max-width: 480px) {
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+
+  .header-actions .btn-primary {
+    width: 100%;
+  }
+
+  .add-task-section {
+    padding: 18px 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions .btn-primary {
+    flex: 1;
+  }
+
+  .modal {
+    padding: 20px;
+  }
+}
+
+
+/* ---------- Touch devices: no hover lift on cards ---------- */
+@media (hover: none) {
+  .task-item:hover {
+    transform: none;
+  }
+}
