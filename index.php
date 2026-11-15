@@ -22,7 +22,7 @@ const VIEWS = ['mytasks' => 'My Tasks', 'important' => 'Important'];
 /* ---------- helper functions ---------- */
 
 // Makes text safe to print inside HTML (prevents XSS).
-function e($value) {
+function e(mixed $value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
@@ -186,6 +186,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $saved = true;
             }
             break;
+            
+        case 'clear_completed':                    // DB: DELETE all completed tasks at once
+            $stmt = $pdo->prepare("DELETE FROM tasks WHERE status = ?");
+            $stmt->execute(['completed']);
+            $saved = true;
+            break;
 
     }
 
@@ -199,9 +205,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ---------- DB: automatic overdue detection (stored in the status column) ---------- */
 $stmt = $pdo->prepare(
-    "UPDATE tasks SET status = 'overdue' WHERE due_date < CURRENT_DATE AND status = 'pending'"
+    "UPDATE tasks SET status = 'overdue' WHERE due_date < ? AND status = 'pending'"
 );
-$stmt->execute();
+$stmt->execute([date('Y-m-d')]);
 
 /* ---------- DB: READ. Fetch every task from MySQL ---------- */
 $stmt = $pdo->prepare("SELECT * FROM tasks ORDER BY id ASC");
@@ -324,7 +330,7 @@ $formAction = '?view=' . e($view) . '&amp;status=' . e($statusFilter);
         <img src="assets/Minimal Taupe Magnifying Glass Icon.png" alt="">
         <input type="text" id="task-search" placeholder="Search tasks..." aria-label="Search tasks">
       </div>
-      <button type="button" class="btn-primary" id="add-task-btn" aria-controls="add-task-section" aria-expanded="false">
+      <button type="button" class="btn-primary" id="add-task-btn" aria-controls="add-task-section" aria-expanded="<?= $addOpen ? 'true' : 'false' ?>">
         <img src="assets/add.png" alt=""> Add Task
       </button>
     </div>
@@ -346,7 +352,17 @@ $formAction = '?view=' . e($view) . '&amp;status=' . e($statusFilter);
     </div>
   <?php endif; ?>
 
-  <!--------- ADD TASK FORM --------------->
+  <?php if ($statusFilter === 'completed' && $stats['completed'] > 0): ?>
+    <form method="POST" action="<?= $formAction ?>" class="trash-toolbar">
+      <input type="hidden" name="action" value="clear_completed">
+      <button type="button" class="btn-text btn-text--danger js-confirm"
+              data-modal-title="Clear completed tasks?"
+              data-modal-message="All completed tasks will be permanently deleted from the database. This can't be undone."
+              data-modal-confirm="Clear all">Clear completed (<?= $stats['completed'] ?>)</button>
+    </form>
+  <?php endif; ?>
+
+<!--------- ADD TASK FORM --------------->
   <section class="add-task-section" id="add-task-section" aria-labelledby="add-task-title"<?= $addOpen ? '' : ' hidden' ?>>
     <h2 id="add-task-title">Add new task</h2>
     <form class="task-form" method="POST">
@@ -465,7 +481,7 @@ $formAction = '?view=' . e($view) . '&amp;status=' . e($statusFilter);
   <h2>Overview</h2>
   <div class="progress-card">
     <?php if ($openCount > 0): ?>
-      <p class="progress-value"><?= $openCount ?></p>
+      <p class="progress-value<?= $stats['overdue'] > 0 ? ' is-overdue' : '' ?>"><?= $openCount ?></p>
       <p class="progress-caption"><?= $openCount === 1 ? 'task left to do' : 'tasks left to do' ?></p>
       <?php if ($stats['overdue'] > 0): ?>
         <a class="overdue-note" href="?view=mytasks&amp;status=overdue"><?= $stats['overdue'] ?> overdue, start here</a>
